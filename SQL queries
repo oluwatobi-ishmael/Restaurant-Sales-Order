@@ -1,0 +1,276 @@
+--EDA
+
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+--Check for missing values in critical columns
+SELECT menu_item_id, item_name, price
+FROM menu_items
+WHERE 1 IS NULL OR 2 IS NULL OR 3 IS NULL;
+
+SELECT order_details_id, order_date, item_id
+FROM order_details
+WHERE 1 IS NULL OR 2 IS NULL OR 3 IS NULL;
+
+
+--OVERVIEW
+
+--Total number of menu items available:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT COUNT (*) AS number_of_menu
+FROM menu_items;
+
+--Total number of orders placed:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT COUNT(order_details_id) AS total_order_placed
+FROM order_details;
+
+--Number of unique items ordered
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT COUNT(DISTINCT item_id) AS unique_items_ordered 
+FROM order_details;
+
+--MENU ANALYSIS
+
+--List all categories and how many items each has:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT category, COUNT(item_name) AS items_in_category
+FROM menu_items
+GROUP BY 1;
+
+--Average price of items per category:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT category, ROUND(AVG(price),2) AS avg_price
+FROM menu_items
+GROUP BY 1;
+
+--Top 5 most expensive items:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT item_name, price
+FROM menu_items
+ORDER BY 2 DESC
+LIMIT 5;
+
+--Price distribution (group into buckets):
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT 
+  CASE 
+    WHEN price < 10 THEN 'Under $10'
+    WHEN price BETWEEN 10 AND 15 THEN '$10-$15'
+    ELSE 'Over $15'
+  END AS price_range,
+  COUNT(*) AS item_count
+FROM menu_items
+GROUP BY price_range;
+
+--ORDER ANALYSIS
+
+--Daily order count
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT order_date, COUNT(*) AS order_per_day
+FROM order_details
+GROUP BY 1
+ORDER BY 1 ASC;
+
+--Hourly order distribution: that is order per hour
+
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT EXTRACT(HOUR FROM order_time) AS order_hour, COUNT(*) AS totat_order
+FROM order_details
+GROUP BY 1
+ORDER BY 1
+
+--Most ordered item IDs:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT item_id, COUNT(item_id)
+FROM order_details
+GROUP BY 1
+ORDER BY 2 DESC
+
+--Add item name to the item id, which give most ordered item
+SELECT item_id, item_name, COUNT(item_id) AS  number_ordered
+FROM menu_items AS mi
+INNER JOIN order_details AS od
+ON mi.menu_item_id = od.item_id
+GROUP BY 1, 2
+ORDER BY 3 DESC
+
+--REVENUE INSIGHT
+
+--Total revenue (from valid orders only):
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT SUM(mi.price) AS total_revenue
+FROM menu_items AS mi
+INNER JOIN order_details AS od
+ON mi.menu_item_id = od.item_id
+
+--Revenue by category:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT mi.category, SUM(mi.price) AS total_revenue
+FROM menu_items AS mi
+INNER JOIN order_details AS od
+ON mi.menu_item_id = od.item_id
+GROUP BY 1
+ORDER BY 2 DESC
+
+--Top 3 revenue-generating items:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT mi.item_name, SUM(mi.price) AS total_revenue
+FROM menu_items AS mi
+INNER JOIN order_details AS od
+ON mi.menu_item_id = od.item_id
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 3
+
+--Average order value:
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT ROUND(AVG(total_revenue), 2) AS average_order_value
+FROM (SELECT od.order_details_id, SUM(mi.price) AS total_revenue
+FROM menu_items AS mi
+INNER JOIN order_details AS od
+ON mi.menu_item_id = od.item_id
+GROUP BY 1) AS revenue;
+
+
+-- TEMPORAL TRENDS
+
+--Orders by day of the week:
+
+SELECT * 
+FROM menu_items
+LIMIT 5;
+
+SELECT * 
+FROM order_details
+LIMIT 5;
+
+SELECT TO_CHAR(order_date::DATE, 'Day') AS day, COUNT(*) AS total_order
+FROM order_details
+GROUP BY 1
+ORDER BY 2 DESC
+
+--Compare weekend vs weekday orders:
+SELECT 
+  CASE 
+    WHEN EXTRACT(DOW FROM order_date::DATE) IN (0,6) THEN 'Weekend'
+    ELSE 'Weekday'
+  END AS day_type,
+  COUNT(*) AS order_count
+FROM order_details
+GROUP BY day_type;
+
+--Check orders with invalid item IDs (not in menu)
+
+SELECT * 
+FROM order_details 
+WHERE item_id NOT IN (SELECT menu_item_id FROM menu_items);
+
+--Check if any orders are missing order_time
+SELECT * FROM order_details 
+WHERE order_time IS NULL;
+
+--Identify menu items never ordered:
+SELECT * 
+FROM menu_items 
+WHERE menu_item_id NOT IN (SELECT item_id FROM order_details);
+
