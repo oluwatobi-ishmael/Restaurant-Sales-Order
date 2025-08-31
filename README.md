@@ -1,2 +1,2 @@
 # Restaurant-Sales-Order
-Fictitious restaurant serving international cuisine
+This is the data analysis of a Fictitious restaurant serving international cuisine
